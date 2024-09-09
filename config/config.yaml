@@ -4,8 +4,10 @@ app:
   version: "1.0"
   environment: "dit"
 
-logger:
-  level: "info"
+http:
+  port: 8080
+log:
+  level: "debug"
 
 db:
   db_name: "go-groc-store-dit.db"

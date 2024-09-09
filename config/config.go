@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -9,9 +10,10 @@ import (
 
 type (
 	Config struct {
-		App `yaml:"app"`
-		Log `yaml:"log"`
-		Db  `yaml:"db"`
+		App  `yaml:"app"`
+		Log  `yaml:"log"`
+		Db   `yaml:"db"`
+		Http `yaml:"htp"`
 	}
 
 	App struct {
@@ -30,20 +32,22 @@ type (
 		DbPath string `env-required:"false" yaml:"db_path" env:"DB_PATH"`
 		DbUrl  string `env-required:"false" yaml:"db_url" env:"DB_URL"`
 	}
+	Http struct {
+		Port string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
+	}
 )
 
-func NewConfigService() (*Config, error) {
+func NewConfigService(logger *slog.Logger, path string) (*Config, error) {
+	cfg := &Config{}
 	viperCfg := viper.New()
 	viperCfg.SetConfigName("config")
 	viperCfg.SetConfigType("yaml")
-	viperCfg.AddConfigPath(".")
-	cfg := &Config{}
+	viperCfg.AddConfigPath(path)
 
 	err := viperCfg.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Println(viperCfg)
 	err = viperCfg.Unmarshal(cfg)
 	if err != nil {
 		return nil, err
@@ -55,7 +59,7 @@ func NewConfigService() (*Config, error) {
 			fmt.Println(err)
 		}
 	})
-	fmt.Println(cfg)
+	logger.Info("Confguration", slog.Any("cfg", cfg))
 
 	return cfg, nil
 }
