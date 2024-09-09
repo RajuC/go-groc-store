@@ -46,4 +46,5 @@ make test
 clean up binary from the last build
 ```bash
 make clean
-```
+```# go-groc-store
+Grocery storeRESTful API with GO
