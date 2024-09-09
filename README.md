@@ -1,6 +1,6 @@
 # Project go-groc-store
 
-One Paragraph of project description goes here
+Grocery store RESTful API using GO
 
 ## Getting Started
 
@@ -46,5 +46,4 @@ make test
 clean up binary from the last build
 ```bash
 make clean
-```# go-groc-store
-Grocery storeRESTful API with GO
+```

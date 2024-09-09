@@ -1,0 +1,13 @@
+app:
+  name: "go-groc-store"
+  description: "online grocery store"
+  version: "1.0"
+  environment: "dit"
+
+logger:
+  level: "info"
+
+db:
+  db_name: "go-groc-store-dit.db"
+  db_path: "./"
+  db_url : "./go-groc-store-dit.db"

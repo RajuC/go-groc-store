@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 
-	"go-groc-store/internal/database"
+	"go-groc-store/pkg/database"
 )
 
 type Server struct {

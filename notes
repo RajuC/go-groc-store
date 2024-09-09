@@ -2,3 +2,8 @@
 ## used go-blueprint for folder structure
 https://go-blueprint.dev/
 go-blueprint create --name go-groc-store --framework gorilla/mux --driver sqlite
+
+
+Config
+Viper
+https://blog.logrocket.com/handling-go-configuration-viper/

@@ -2,11 +2,17 @@ package main
 
 import (
 	"fmt"
-	"go-groc-store/internal/server"
+	"go-groc-store/config"
+	"go-groc-store/pkg/server"
 )
 
 func main() {
 
+	cfg, er := config.NewConfigService()
+	if er != nil {
+		panic(er)
+	}
+	fmt.Println(cfg)
 	server := server.NewServer()
 
 	err := server.ListenAndServe()
