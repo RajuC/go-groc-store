@@ -2,39 +2,60 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"log/slog"
-	"net/http"
-	"strconv"
-	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 
-	"go-groc-store/config"
+	"go-groc-store/pkg/customer"
 	"go-groc-store/pkg/database"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-type Server struct {
-	port int
-
-	db database.Service
+type Handlers struct {
+	customerHandler *customer.CustomerHandler
 }
 
-func NewServer(logger *slog.Logger, cfg *config.Config) *http.Server {
-	port, _ := strconv.Atoi(cfg.Http.Port)
+type Server struct {
+	port     string
+	handlers *Handlers
+	logger   *slog.Logger
+
+	dbService database.DbService
+	webserver *fiber.App
+}
+
+func NewServer(app *fiber.App, logger *slog.Logger, port string, dbService database.DbService) *Server {
+	// portInt, _ := strconv.Atoi(port)
 	fmt.Println(port)
-	NewServer := &Server{
-		port: port,
-		db:   database.New(),
+	customerNewHandler := customer.CustomerNewHandler(logger, dbService)
+	customerNewHandler.CreateCustomerTable()
+	handlers := &Handlers{
+		customerHandler: customerNewHandler,
 	}
 
-	// Declare Server config
-	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
+	// RouteInit(app, handlers)
+	return &Server{
+		handlers:  handlers,
+		port:      port,
+		logger:    logger,
+		dbService: dbService,
+		webserver: app,
 	}
+	//
+}
 
-	return server
+func (s *Server) Start() {
+	routes(s.webserver, s.handlers)
+	log.Fatal(s.webserver.Listen(":" + s.port))
+}
+
+func routes(webserver *fiber.App, handlers *Handlers) {
+	customerApi := webserver.Group("/customers")
+	customerApi.Get("/", handlers.customerHandler.GetAll)
+	customerApi.Post("/", handlers.customerHandler.CreateCustomer)
+	customerApi.Get("/:id", handlers.customerHandler.GetCustomer)
+	// customerApi.Delete("/create", handlers.customerHandler.DeleteCustomer)
+	// customerApi.Update("/create", handlers.customerHandler.UpdateCustomer)
 }

@@ -4,8 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"go-groc-store/config"
+
+	// "go-groc-store/pkg/customer"
+
 	"log"
-	"os"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -13,55 +17,43 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Service represents a service that interacts with a database.
-type Service interface {
-	// Health returns a map of health status information.
-	// The keys and values in the map are service-specific.
-	Health() map[string]string
-
-	// Close terminates the database connection.
-	// It returns an error if the connection cannot be closed.
-	Close() error
+type DbService struct {
+	logger    *slog.Logger
+	dbService *sql.DB
+	dbUrl     string
 }
 
-type service struct {
-	db *sql.DB
-}
+var _ Service = (*DbService)(nil)
 
-var (
-	dburl      = os.Getenv("DB_URL")
-	dbInstance *service
-)
+func New(l *slog.Logger, cfg *config.Config) *DbService {
 
-func New() Service {
-	// Reuse Connection
-	if dbInstance != nil {
-		return dbInstance
-	}
+	// l.Info("Confguration1234", slog.Any("cfg", cfg))
 
-	db, err := sql.Open("sqlite3", dburl)
+	dbService, err := sql.Open("sqlite3", cfg.Db.DbUrl)
 	if err != nil {
 		// This will not be a connection error, but a DSN parse error or
 		// another initialization error.
 		log.Fatal(err)
 	}
 
-	dbInstance = &service{
-		db: db,
+	return &DbService{
+		dbService: dbService,
+		logger:    l,
+		dbUrl:     cfg.Db.DbUrl,
 	}
-	return dbInstance
+
 }
 
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *service) Health() map[string]string {
+func (d *DbService) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	stats := make(map[string]string)
 
 	// Ping the database
-	err := s.db.PingContext(ctx)
+	err := d.dbService.PingContext(ctx)
 	if err != nil {
 		stats["status"] = "down"
 		stats["error"] = fmt.Sprintf("db down: %v", err)
@@ -74,7 +66,7 @@ func (s *service) Health() map[string]string {
 	stats["message"] = "It's healthy"
 
 	// Get database stats (like open connections, in use, idle, etc.)
-	dbStats := s.db.Stats()
+	dbStats := d.dbService.Stats()
 	stats["open_connections"] = strconv.Itoa(dbStats.OpenConnections)
 	stats["in_use"] = strconv.Itoa(dbStats.InUse)
 	stats["idle"] = strconv.Itoa(dbStats.Idle)
@@ -107,7 +99,7 @@ func (s *service) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *service) Close() error {
-	log.Printf("Disconnected from database: %s", dburl)
-	return s.db.Close()
+func (d *DbService) Close() error {
+	log.Printf("Disconnected from database: %s", d.dbUrl)
+	return d.dbService.Close()
 }

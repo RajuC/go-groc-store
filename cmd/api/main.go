@@ -1,10 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"go-groc-store/config"
+	"go-groc-store/pkg/database"
 	"go-groc-store/pkg/log"
 	"go-groc-store/pkg/server"
+	"log/slog"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
@@ -14,10 +17,12 @@ func main() {
 		panic(er)
 	}
 	logger = log.SetLoggerLevel(cfg.Log.Level)
-	server := server.NewServer(logger, cfg)
 
-	err := server.ListenAndServe()
-	if err != nil {
-		panic(fmt.Sprintf("cannot start server: %s", err))
-	}
+	logger.Info("Confguration", slog.Any("cfg", cfg))
+	dbService := database.New(logger, cfg)
+	app := fiber.New()
+
+	server := server.NewServer(app, logger, cfg.Http.Port, *dbService)
+	server.Start()
+
 }

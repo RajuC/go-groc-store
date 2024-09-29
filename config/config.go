@@ -13,7 +13,7 @@ type (
 		App  `yaml:"app"`
 		Log  `yaml:"log"`
 		Db   `yaml:"db"`
-		Http `yaml:"htp"`
+		Http `yaml:"http"`
 	}
 
 	App struct {
@@ -28,9 +28,9 @@ type (
 	}
 
 	Db struct {
-		DbName string `env-required:"false" yaml:"db_name" env:"DB_NAME"`
-		DbPath string `env-required:"false" yaml:"db_path" env:"DB_PATH"`
-		DbUrl  string `env-required:"false" yaml:"db_url" env:"DB_URL"`
+		DbName string `env-required:"true" yaml:"dbname" env:"DB_NAME"`
+		DbPath string `env-required:"true" yaml:"dbpath" env:"DB_PATH"`
+		DbUrl  string `env-required:"true" yaml:"dburl" env:"DB_URL"`
 	}
 	Http struct {
 		Port string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
@@ -59,7 +59,6 @@ func NewConfigService(logger *slog.Logger, path string) (*Config, error) {
 			fmt.Println(err)
 		}
 	})
-	logger.Info("Confguration", slog.Any("cfg", cfg))
 
 	return cfg, nil
 }

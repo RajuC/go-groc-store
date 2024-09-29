@@ -10,6 +10,6 @@ log:
   level: "debug"
 
 db:
-  db_name: "go-groc-store-dit.db"
-  db_path: "./"
-  db_url : "./go-groc-store-dit.db"
+  dbname: "go-groc-store-dit.db"
+  dbpath: "./"
+  dburl : "./go-groc-store-dit.db"
